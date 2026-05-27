@@ -1,6 +1,10 @@
 import requests
 import json
 import sqlite3
+import time
+
+# IMPORT LINKS
+from job_finder import clean_links
 
 # DATABASE CONNECTION
 conn = sqlite3.connect("jobs.db")
@@ -8,65 +12,67 @@ cursor = conn.cursor()
 
 # API HEADERS
 headers = {
-    "Authorization: Bearer actual-key",
-    "Content-Type": "application/json",
+    "Authorization": "Bearer API-KEY",
+    "Content-Type": "application/json"
 }
 
-# INPUT DATA
-data = {
-    "input": [
-        {
-            "url": "https://www.linkedin.com/jobs/view/software-engineer-at-epic-3986111804/?_l=en"
-        },
-        {
-            "url": "https://www.linkedin.com/jobs/view/software-engineer-at-pave-4310512612/"
-        }
-    ]
-}
+# FORMAT LINKS FOR BRIGHTDATA
+job_inputs = []
 
-# API REQUEST
-response = requests.post(
+for link in clean_links:
+    job_inputs.append({
+        "url": link
+    })
+
+print("TOTAL JOBS:", len(job_inputs))
+
+# START SCRAPING
+scraper_response = requests.post(
     "https://api.brightdata.com/datasets/v3/scrape?dataset_id=gd_lpfll7v5hcqtkxl6l&notify=false&include_errors=true",
     headers=headers,
-    json=data
+    json={
+        "input": job_inputs
+    }
 )
 
-print("Status:", response.status_code)
+print("SCRAPER STATUS:", scraper_response.status_code)
 
 # SPLIT NDJSON RESPONSE
-lines = response.text.strip().split("\n")
+lines = scraper_response.text.strip().split("\n")
 
 jobs = []
 
 for line in lines:
     jobs.append(json.loads(line))
 
-# INSERT INTO DATABASE
+print("TOTAL JOB RECORDS:", len(jobs))
+
+# SAVE TO DATABASE
 for job in jobs:
 
-    print("Company:", job.get("company_name"))
-    print("Job Title:", job.get("job_title"))
-    print("Job ID:", job.get("job_posting_id"))
-    print("-------------------")
+    company = job.get("company_name")
+    title = job.get("job_title")
+    job_id = job.get("job_posting_id")
 
-    if job.get("company_name") is None:
+    if company is None:
         continue
+
+    print(company, "-", title)
 
     cursor.execute(
         """
         INSERT INTO jobs VALUES (?, ?, ?)
         """,
         (
-            job.get("company_name"),
-            job.get("job_title"),
-            job.get("job_posting_id")
+            company,
+            title,
+            job_id
         )
     )
-
-    print("Inserted:", job.get("company_name"))
-
-# SAVE DATABASE
+# SAVE CHANGES
 conn.commit()
+
+# CLOSE DATABASE
 conn.close()
 
-print("All jobs saved!")
+print("\nALL JOBS SAVED SUCCESSFULLY")
