@@ -11,12 +11,6 @@ df = pd.read_sql_query(
     conn
 )
 
-# CHECK IF DATA EXISTS
-if df.empty:
-    print(" No data found ")
-    exit()
-
-print(" DATABASE CONNECTED SUCCESSFULLY")
 
 # SHOW DATA
 print(df) 
