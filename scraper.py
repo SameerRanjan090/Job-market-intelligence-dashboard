@@ -1,10 +1,13 @@
 import requests
 import json
 import sqlite3
-import time
+import streamlit as st
 
 # IMPORT LINKS
-from job_finder import clean_links
+from job_finder import get_job_links
+
+# GET JOB LINKS
+clean_links = get_job_links()
 
 # DATABASE CONNECTION
 conn = sqlite3.connect("jobs.db")
@@ -12,7 +15,7 @@ cursor = conn.cursor()
 
 # API HEADERS
 headers = {
-    "Authorization": "Bearer API-KEY",
+    "Authorization": f"Bearer {st.secrets['BRIGHTDATA_TOKEN']}",
     "Content-Type": "application/json"
 }
 
@@ -25,6 +28,12 @@ for link in clean_links:
     })
 
 print("TOTAL JOBS:", len(job_inputs))
+
+# STOP IF NO JOBS FOUND
+if len(job_inputs) == 0:
+    print("No job links found.")
+    conn.close()
+    exit()
 
 # START SCRAPING
 scraper_response = requests.post(
@@ -43,7 +52,9 @@ lines = scraper_response.text.strip().split("\n")
 jobs = []
 
 for line in lines:
-    jobs.append(json.loads(line))
+
+    if line.strip():
+        jobs.append(json.loads(line))
 
 print("TOTAL JOB RECORDS:", len(jobs))
 
@@ -59,16 +70,35 @@ for job in jobs:
 
     print(company, "-", title)
 
+    location = job.get("job_location")
+    employment_type = job.get("employment_type")
+    experience_level = job.get("seniority_level")
+    salary = job.get("salary")
+    posted_date = job.get("posted_date")
+    job_url = job.get("url")
+
     cursor.execute(
         """
-        INSERT INTO jobs VALUES (?, ?, ?)
+        INSERT OR IGNORE INTO jobs
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
+            job_id,
             company,
             title,
-            job_id
+            location,
+            employment_type,
+            experience_level,
+            salary,
+            None,           # skills
+            posted_date,
+            None,           # applicants
+            None,           # industry
+            job_url,
+            json.dumps(job)
         )
     )
+
 # SAVE CHANGES
 conn.commit()
 
