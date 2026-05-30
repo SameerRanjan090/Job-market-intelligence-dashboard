@@ -10,7 +10,9 @@ df = pd.read_sql_query(
     "SELECT * FROM jobs",
     conn
 )
-
+if df.empty:
+    st.warning("No jobs available.")
+    st.stop()
 conn.close()
 # =========================================
 # PAGE CONFIG
@@ -222,20 +224,20 @@ ANIMATED GLOW
 with st.sidebar:
 
     st.markdown(f"""
-    <h1 class='glow'> Job Market Intelligence</h1>
+    <h1 class='glow'>🚀 Job Market Intelligence</h1>
 
     <p style='color:#9aa4bf;'>
     Advanced Hiring Intelligence Platform
     </p>
     """, unsafe_allow_html=True)
 
-    st.button(" Dashboard")
-    st.button(" Companies")
-    st.button(" Trends")
-    st.button(" AI Insights")
-    st.button("Reports")
-    st.button("Notifications")
-    st.button(" Settings")
+    st.button("🏠 Dashboard")
+    st.button("🏢 Companies")
+    st.button("📈 Trends")
+    st.button("🤖 AI Insights")
+    st.button("📄 Reports")
+    st.button("🔔 Notifications")
+    st.button("⚙️ Settings")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -243,11 +245,11 @@ with st.sidebar:
     <div class='glass-card'>
     <h4>System Status</h4>
 
-    <p> All Systems Operational</p>
+    <p>🟢 All Systems Operational</p>
 
-    <p> Live Scraping Active</p>
+    <p>⚡ Live Scraping Active</p>
 
-    <p> AI Engine Running</p>
+    <p>🤖 AI Engine Running</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -345,7 +347,7 @@ with c3:
     st.markdown(f"""
     <div class='metric-card'>
 
-    <h4>Top Hiring Sector</h4>
+    <h4>Top Hiring Company</h4>
 
     <h1 style='color:#b066ff;'>{top_company}</h1>
 
@@ -385,7 +387,7 @@ with left:
     st.markdown(f"""
     <div class='glass-card'>
     <h3 class='section-title'>
-     Top Hiring Companies
+    📊 Top Hiring Companies
     </h3>
     </div>
     """, unsafe_allow_html=True)
@@ -438,7 +440,7 @@ with right:
     st.markdown(f"""
     <div class='glass-card'>
     <h3 class='section-title'>
-     AI Insights
+    🤖 AI Insights
     </h3>
 
     <p>
@@ -458,30 +460,20 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
+    st.markdown("""
     <div class='glass-card'>
     <h3 class='section-title'>
-     Live Job Feed
+    🔥 Live Job Feed
     </h3>
-
-    <div class='notification'>
-    Google hiring Backend Engineers
-    </div>
-
-    <div class='notification'>
-    Microsoft hiring AI Researchers
-    </div>
-
-    <div class='notification'>
-    Amazon hiring Cloud Engineers
-    </div>
-
-    <div class='notification'>
-    NVIDIA hiring GPU Engineers
-    </div>
-
     </div>
     """, unsafe_allow_html=True)
+
+    latest_jobs = df[["company", "title"]].head(4)
+
+    for _, row in latest_jobs.iterrows():
+        st.info(
+            f"{row['company']} hiring {row['title']}"
+        )
 
 # =========================================
 # JOB TABLE SECTION
@@ -492,7 +484,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='glass-card'>
 <h3 class='section-title'>
- Top Job Titles
+💼 Top Job Titles
 </h3>
 </div>
 """, unsafe_allow_html=True)
@@ -510,7 +502,6 @@ st.dataframe(
     use_container_width=True
 )
 
-st.table(jobs)
 
 # =========================================
 # BOTTOM SECTION
@@ -526,7 +517,7 @@ with b1:
     <div class='glass-card'>
 
     <h3 class='section-title'>
-     Global Hiring Activity
+    🌎 Global Hiring Activity
     </h3>
 
     <h1 style='color:#36ff9b;'>+27%</h1>
@@ -545,7 +536,7 @@ with b2:
     <div class='glass-card'>
 
     <h3 class='section-title'>
-    AI Recommendation
+    ⚡ AI Recommendation
     </h3>
 
     <p>
