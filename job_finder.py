@@ -1,59 +1,57 @@
 import requests
-import json
 import re
+import streamlit as st
 
-headers = {
-    "Authorization": "Bearer API-KEY",
-    "Content-Type": "application/json",
-}
 
-payload = {
-    "zone": "serp_api1",
-    "url": "https://www.google.com/search?q=site:linkedin.com/jobs/view+software+engineer",
-    "format": "json"
-}
+def get_job_links():
 
-# SEND REQUEST
-response = requests.post(
-    "https://api.brightdata.com/request",
-    headers=headers,
-    json=payload
-)
+    headers = {
+        "Authorization": f"Bearer {st.secrets['BRIGHTDATA_TOKEN']}",
+        "Content-Type": "application/json"
+    }
 
-print(response.status_code)
+    payload = {
+        "zone": "serp_api1",
+        "url": "https://www.google.com/search?q=site:linkedin.com/jobs/view+software+engineer",
+        "format": "json"
+    }
 
-# CONVERT RESPONSE
-results = response.json()
+    response = requests.post(
+        "https://api.brightdata.com/request",
+        headers=headers,
+        json=payload
+    )
 
-# GET HTML BODY
-html = results["body"]
+    results = response.json()
 
-# FIND LINKEDIN JOB LINKS
-links = re.findall(
-    r'https://www\.linkedin\.com/jobs/view/[^"\']+',
-    html
-)
+    html = results["body"]
 
-# REMOVE DUPLICATES
-links = list(set(links))
+    links = re.findall(
+        r'https://www\.linkedin\.com/jobs/view/[^"\']+',
+        html
+    )
 
-clean_links = []
+    links = list(set(links))
 
-for link in links:
+    clean_links = []
 
-    # REMOVE TRACKING / TEXT FRAGMENTS
-    clean = link.split("#")[0]
-    clean = clean.split("%23")[0]
+    for link in links:
 
-    clean_links.append(clean)
+        clean = link.split("#")[0]
+        clean = clean.split("%23")[0]
 
-# FINAL UNIQUE LINKS
-clean_links = list(set(clean_links))
+        clean_links.append(clean)
 
-# RUN ONLY WHEN FILE IS EXECUTED DIRECTLY
+    clean_links = list(set(clean_links))
+
+    return clean_links
+
+
 if __name__ == "__main__":
+
+    links = get_job_links()
 
     print("\nFOUND JOB LINKS:\n")
 
-    for link in clean_links:
+    for link in links:
         print(link)
